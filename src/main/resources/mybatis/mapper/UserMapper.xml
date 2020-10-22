@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--@author 杨金刚-->
+<!--@date 2020/8/9 9:22-->
+<mapper namespace="com.its.demo.dao.UserMapper">
+
+    <resultMap id="UserVOResultMap" type="com.its.demo.domain.UserVO">
+        <result property="id" column="id" jdbcType="BIGINT" />
+        <result property="username" column="username" jdbcType="VARCHAR" />
+        <result property="name" column="name" jdbcType="VARCHAR" />
+        <result property="deptId" column="dept_id" jdbcType="BIGINT" />
+        <result property="roleId" column="role_id" jdbcType="BIGINT" />
+        <result property="dept" column="dept" jdbcType="VARCHAR" />
+        <result property="parentDept" column="parent_dept" jdbcType="VARCHAR" />
+        <result property="role" column="ROLE" jdbcType="VARCHAR" />
+        <result property="roleDescription" column="role_description" jdbcType="VARCHAR" />
+        <result property="disabled" column="is_disabled" jdbcType="INTEGER" />
+    </resultMap>
+
+    <resultMap id="UserResultMap" type="com.its.demo.domain.UserDO">
+        <result property="id" column="id" jdbcType="BIGINT" />
+        <result property="username" column="username" jdbcType="VARCHAR" />
+        <result property="password" column="password" jdbcType="VARCHAR" />
+        <result property="name" column="name" jdbcType="VARCHAR" />
+        <result property="roleId" column="role_id" jdbcType="BIGINT" />
+        <result property="deptId" column="dept_id" jdbcType="BIGINT" />
+        <result property="disabled" column="is_disabled" jdbcType="INTEGER" />
+    </resultMap>
+
+    <select id="getUserByUsername" resultMap="UserResultMap" >
+        SELECT id, username, password, name, is_disabled, dept_id, role_id
+        FROM sys_user
+        WHERE username = #{username}
+    </select>
+
+    <select id="getUserVOByUsername" resultMap="UserVOResultMap" >
+        SELECT id, username, password, name, is_disabled, dept_id,
+        role_id, role, dept,parent_dept, role_description, gmt_create
+        FROM v_sys_user
+        WHERE username = #{username}
+    </select>
+
+    <select id="listUser" resultMap="UserResultMap" >
+        SELECT id, username, password, is_disabled, dept_id, role_id
+        FROM sys_user
+    </select>
+
+    <select id="listUserVO" resultMap="UserVOResultMap">
+        SELECT * FROM v_sys_user
+    </select>
+
+    <select id="listUserVOByQueryCriteria" resultMap="UserVOResultMap" parameterType="com.its.demo.domain.UserVO">
+        SELECT * FROM v_sys_user
+        <where>
+            <if test="username != null"> username like concat(#{username},'%') </if>
+            <if test="dept != null"> and dept like concat(#{dept},'%') </if>
+            <if test="role != null"> and role = #{role} </if>
+            <if test="disabled != null"> and is_disabled = #{disabled}  </if>
+        </where>
+    </select>
+
+    <select id="checkPassword" resultType="String" parameterType="String">
+        select password from SYS_USER where username=#{username}
+    </select>
+
+    <update id="changePassword">
+        update SYS_USER set password=#{password} where username=#{username}
+    </update>
+
+    <insert id="insert"  useGeneratedKeys="true" keyProperty="id" parameterType="com.its.demo.domain.UserDO">
+        INSERT INTO
+        SYS_USER
+        (username, password, name, is_disabled, dept_id, role_id )
+        VALUES
+        (#{username}, #{password}, #{name}, #{disabled}, #{deptId}, #{roleId})
+    </insert>
+
+    <update id="update" parameterType="com.its.demo.domain.UserDO">
+        UPDATE
+        HD_SYS_USER
+        <trim prefix="set" suffixOverrides=",">
+            <if test="role != null">role = #{role},</if>
+            <if test="disabled != null">is_disabled = #{disabled},</if>
+            <if test="unit != null">unit = #{unit},</if>
+        </trim>
+        WHERE
+        id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="Long" >
+       DELETE FROM HD_SYS_USER WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteAll" >
+       DELETE FROM SYS_USER
+    </delete>
+
+    <update id="disable" parameterType="Long" >
+        UPDATE HD_SYS_USER
+        SET is_disabled = 1
+        WHERE
+        id = #{id}
+    </update>
+
+    <update id="enable" parameterType="Long" >
+        UPDATE HD_SYS_USER
+        SET is_disabled = 0
+        WHERE
+        id = #{id}
+    </update>
+
+</mapper>

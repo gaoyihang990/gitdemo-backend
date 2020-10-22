@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--@author 杨金刚-->
+<!--@date 2020/8/9 9:22-->
+<mapper namespace="com.its.demo.dao.DeptMapper">
+
+    <resultMap id="DeptResultMap" type="com.its.demo.domain.DeptDO">
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="dept" column="dept" jdbcType="VARCHAR"/>
+        <result property="parentDeptId" column="parent_dept_id" jdbcType="BIGINT"/>
+        <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP"/>
+        <result property="gmtModified" column="gmt_modified" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="DeptVOResultMap" type="com.its.demo.domain.DeptVO">
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="dept" column="dept" jdbcType="VARCHAR"/>
+        <result property="parentDeptId" column="parent_dept_id" jdbcType="BIGINT"/>
+        <result property="parentDept" column="parent_dept" jdbcType="VARCHAR"/>
+        <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP"/>
+        <result property="gmtModified" column="gmt_modified" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="listDeptVOs" resultMap="DeptVOResultMap">
+        SELECT id, dept, parent_dept_id, parent_dept, gmt_create, gmt_modified
+        FROM v_sys_dept
+    </select>
+
+    <select id="listDeptVOsByKeyword" resultMap="DeptVOResultMap">
+        SELECT id, dept, parent_dept_id, parent_dept, gmt_create, gmt_modified
+        FROM v_sys_dept where dept like concat('%', concat(#{keyword}, '%'))
+    </select>
+
+    <select id="getDeptById" resultMap="DeptResultMap">
+        SELECT id, dept, parent_dept_id, gmt_create, gmt_modified
+        FROM sys_dept
+        WHERE id = #{id}
+    </select>
+
+    <select id="getDeptVOById" resultMap="DeptVOResultMap">
+        SELECT id, dept, parent_dept_id, parent_dept, gmt_create, gmt_modified
+        FROM v_sys_dept
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertDept" parameterType="com.its.demo.domain.DeptDO">
+        INSERT INTO sys_dept (dept, parent_dept_id, gmt_create)
+        VALUES (#{dept}, #{parentDeptId}, now())
+    </insert>
+
+    <update id="updateDept" parameterType="com.its.demo.domain.DeptDO">
+        UPDATE sys_dept
+        SET dept = #{dept},
+            parent_dept_id = #{parentDeptId},
+            gmt_modified = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteDept">
+        DELETE
+        FROM sys_dept
+        WHERE id = #{id}
+    </delete>
+
+    <select id="countOccupiedDept" resultType="Integer">
+        SELECT count(*)
+        FROM sys_dept m
+        WHERE EXISTS(select 1 from sys_user where dept_id = m.id and m.id = #{id})
+           OR EXISTS(select 1 from sys_dept where id = m.parent_dept_id and m.parent_dept_id = #{id})
+    </select>
+
+    <select id="countDeptByName" resultType="Integer">
+        SELECT count(*)
+        FROM sys_dept where dept=#{dept}
+    </select>
+
+    <select id="countDeptByNameWithId" resultType="Integer">
+        SELECT count(*)
+        FROM sys_dept where dept = #{dept} and id  &lt;&gt; #{id}
+    </select>
+
+</mapper>

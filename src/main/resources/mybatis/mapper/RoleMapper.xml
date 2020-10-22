@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--@author 杨金刚-->
+<!--@date 2020/8/9 9:22-->
+<mapper namespace="com.its.demo.dao.RoleMapper">
+    <resultMap id="RoleResultMap" type="com.its.demo.domain.RoleDO">
+        <result property="id" column="id" jdbcType="BIGINT" />
+        <result property="role" column="role" jdbcType="VARCHAR" />
+        <result property="parentRoleId" column="parent_role_id" jdbcType="BIGINT"/>
+        <result property="description" column="description" jdbcType="VARCHAR" />
+        <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP" />
+        <result property="gmtModified" column="gmt_modified" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="RoleVOResultMap" type="com.its.demo.domain.RoleVO">
+        <result property="id" column="id" jdbcType="BIGINT"/>
+        <result property="role" column="role" jdbcType="VARCHAR"/>
+        <result property="parentRoleId" column="parent_role_id" jdbcType="BIGINT"/>
+        <result property="parentRole" column="parent_role" jdbcType="VARCHAR"/>
+        <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP"/>
+        <result property="gmtModified" column="gmt_modified" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <select id="listAllRole">
+        select id, role,parent_role_id, description, gmt_create,gmt_modified from sys_role
+    </select>
+    <select id="listRoleVOs" resultMap="RoleVOResultMap">
+        SELECT id, role, parent_role_id, parent_role, gmt_create, gmt_modified
+        FROM v_sys_role
+    </select>
+
+    <select id="listRoleVOsByKeyword" resultMap="RoleVOResultMap">
+        SELECT id, role, parent_role_id, parent_role, gmt_create, gmt_modified
+        FROM v_sys_role where role like concat('%', concat(#{keyword}, '%'))
+    </select>
+
+    <select id="getRoleById" resultMap="RoleResultMap">
+        SELECT id, role, parent_role_id, gmt_create, gmt_modified
+        FROM sys_role
+        WHERE id = #{id}
+    </select>
+
+    <select id="getRoleVOById" resultMap="RoleVOResultMap">
+        SELECT id, role, parent_role_id, parent_role, gmt_create, gmt_modified
+        FROM v_sys_role
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertRole" parameterType="com.its.demo.domain.RoleDO">
+        INSERT INTO sys_role (role, parent_role_id, gmt_create)
+        VALUES (#{role}, #{parentRoleId}, now())
+    </insert>
+
+    <update id="updateRole" parameterType="com.its.demo.domain.RoleDO">
+        UPDATE sys_role
+        SET role = #{role},
+            parent_role_id = #{parentRoleId},
+            gmt_modified = now()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteRole">
+        DELETE
+        FROM sys_role
+        WHERE id = #{id}
+    </delete>
+
+    <select id="countOccupiedRole" resultType="Integer">
+        SELECT count(*)
+        FROM sys_role m
+        WHERE EXISTS(select 1 from sys_user where role_id = m.id and m.id = #{id})
+           OR EXISTS(select 1 from sys_role where id = m.parent_role_id and m.parent_role_id = #{id})
+    </select>
+
+    <select id="countRoleByName" resultType="Integer">
+        SELECT count(*)
+        FROM sys_role where role=#{role}
+    </select>
+
+    <select id="countRoleByNameWithId" resultType="Integer">
+        SELECT count(*)
+        FROM sys_role where role = #{role} and id  &lt;&gt; #{id}
+    </select>
+</mapper>
